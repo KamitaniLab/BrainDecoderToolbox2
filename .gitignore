@@ -1,0 +1,10 @@
+.DS_Store
+._*
+
+*~
+*.asv
+*.mat
+*.fig
+*.eps
+
+lib/
