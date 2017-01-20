@@ -32,6 +32,7 @@ for n = 1:length(identifier)
     chkMdInd = chkMdInd | strcmp(metaData.key, identifier{n});
 end
 
+tolerance = 10 ^ -12; % Tolerance in value equality checking
 
 %% Check column redundancy
 
@@ -63,15 +64,19 @@ for iCol = 1:nCol
     mdvWoNan = col(c).mdVal(chkMdInd, :);
     mdvWoNan(isnan(mdvWoNan)) = 0;
     
-    chkColInds = find(sumDataSet == sum(dsWoNan, 1) & sumMdVal == sum(mdvWoNan, 1));
+    chkColInds = find(abs(sumDataSet - sum(dsWoNan, 1)) < 1 ...
+                      & abs(sumMdVal - sum(mdvWoNan, 1)) < 1);
 
     for iChk = chkColInds
         chkDataSet = dataSet(:, iChk);
         chkMdVal = metaData.value(:, iChk);
 
-        if isequaln(col(c).dataSet, chkDataSet) ...
-                && isequaln(col(c).mdVal(chkMdInd), chkMdVal(chkMdInd))
+        dsDiff = col(c).dataSet - chkDataSet;
+        mdDiff = col(c).mdVal(chkMdInd) - chkMdVal(chkMdInd);
+        dsDiff(isnan(dsDiff)) = 0;
+        mdDiff(isnan(mdDiff)) = 0;
 
+        if max(abs(dsDiff)) < tolerance && max(abs(mdDiff)) < tolerance
             col(c).redundantCol = [ col(c).redundantCol, iChk ];
             checkFlag(iChk) = true;
         end
