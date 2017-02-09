@@ -12,4 +12,6 @@ if isequal(dpath(end), filesep)
     dpath = dpath(1:end-1);
 end
 
-[dPath, dname] = fileparts(dpath);
+[dPath, dBasename, dExt] = fileparts(dpath);
+
+dname = [dBasename, dExt]
