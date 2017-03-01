@@ -1,4 +1,4 @@
-function save_data(fileName, dataSet, metaData)
+function save_data(fileName, dataSet, metaData, varargin)
 % save_data    Save `dataSet` and `metaData` to a file
 %
 % This file is a part of BrainDecoderToolbox2.
@@ -17,6 +17,11 @@ function save_data(fileName, dataSet, metaData)
 %
 % None
 %
+
+opt = bdt_getoption(varargin, ...
+                    {{'Version', 'char', '-v7.3'}});
+
+save_ver = opt.Version;
 
 [p, n, ext] = fileparts(fileName);
 
@@ -46,7 +51,8 @@ switch fileType
   case 'mat'
     save(fileName, ...
          'dataSet', 'metaData', ...
-         'createScript', 'createDateRaw', 'createDate');
+         'createScript', 'createDateRaw', 'createDate', ...
+         save_ver);
   case 'hdf5'
     dat.dataSet = dataSet;
     dat.metaData = metaData;
