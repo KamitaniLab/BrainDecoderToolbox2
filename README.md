@@ -1,44 +1,19 @@
 # BrainDecoderToolbox2
 
-Matlab library for brain decoding
+BrainDecoderToolbox2 is a Matlab library for brain decoding analysis, providing interfaces to BrainDecoderToolbox2 data format and utilities for machine learning analysis and functional MRI data handling as well as drawing figures and visualizing data.
 
 ## Requirments
 
-- MATLAB (>R2007b)
+- MATLAB (>=R2007b)
 - SPM (5, 8, or 12)
 
 ## Installation
 
-1. Put `BrainDecoderToolbox2` in your computer
-2. Run `setpath` or `addpath(genpath('/in/your/computer/BrainDecoderToolbox2'))` on MATLAB.
-3. Add SPM in your MATLAB path.
-
-## Files
-
-- bdata/
-    - Set of data interface functions for BrainDecoderToolbox2 data format
-- distcomp/
-    - Functions for distributed computation supports
-- fig/
-    - Functions for visualization and figure drawing
-- ml/
-    - Fuctions supporting machine learning analysis
-- mri/
-    - Fuctions handling MRI data
-- preproc/
-    - Functions for preprocessing
-- stats/
-    - Fuctions for statistics
-- test/
-    - Test scripts
-- util/
-    - Utility functions
-- setpath.m
-    - Matlab script to set paths to BrainDecoderToolbox2 functions
-- README.md
-    - This file
-- .gitignore
-    - Git related file
+1. Download `BrainDecoderToolbox2` in your computer.
+2. Add the downloaded directory in your MATLAB path.
+    - `setpath.m` will set all the necessary path of BrainDecoderToolbox2.
+    - Alternatively, you can set the path by yourself (e.g., `addpath(genpath('/in/your/computer/BrainDecoderToolbox2'))`)
+3. Add SPM in your MATLAB path when you use functions depending SPM.
 
 ## For developers
 
@@ -46,10 +21,6 @@ Matlab library for brain decoding
 - The names of variables should be lower camel-case (e.g., `numVoxel`).
 - Please push your commits or send your pull requests to `dev` branch, not to `master`.
 
-## Third-party functions
+## License
 
-BrainDecoderToolbox2 contains the following third-party functions:
-
-- `errorbar_h` by The MathWorks, Inc.
-- `hline` by Brandon Kuczenski
-- `suptitle` by Drea Thomas, John Cristion, and Mark Histed
+MIT License
