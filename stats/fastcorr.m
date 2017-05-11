@@ -5,25 +5,39 @@ function [cor, tval, p] = fastcorr(x, y)
 %
 % Inputs:
 %
-% - X : Matrix or vector
-% - Y : Matrix or vector
+% - x, y [M x N matrix] : Input Matrix(es). Each column is a single sample.
 %
 % Outputs:
 %
-% - cor : Correlation between X and Y
+% - cor [N x N matrix] : Correlation matrix between x and y.
 %
 % Note:
 %
 % Originally developed by Tomoyasu Horikawa <horikawa-t@atr.jp> on 2010-06-06.
 %
 
-n = size(x, 1);
+ndim = size(x, 1); % N dimension
+nsmp = size(x, 2); % N sample
 
 %% Main
 if ~exist('y', 'var')
     cor = cov(x) ./ (std(x)' * std(x));
 else
-    cor = (((x - repmat(mean(x), n, 1))' * (y - repmat(mean(y), n, 1))) / (n - 1));
+    xm = (x - repmat(mean(x), ndim, 1));
+    ym = (y - repmat(mean(y), ndim, 1));
+
+    sx = repmat(sqrt(sum(xm .^ 2, 1)), nsmp, 1);
+    sy = repmat(sqrt(sum(ym .^ 2, 1)), nsmp, 1);
+    cor = (xm' * ym) ./ (sx' .* sy);
+
+    % Equivalent to the following code:
+    %for i = 1:size(x, 2)
+    %for j = 1:size(y, 2)
+    %    xm = x(:, i) - mean(x(:, i));
+    %    ym = y(:, j) - mean(y(:, j));
+    %    cor(i, j) = (xm' * ym) ./ (sqrt(xm' * xm) * sqrt(ym' * ym));
+    %end
+    %end
 end
 
 if nargout > 1
@@ -31,6 +45,6 @@ if nargout > 1
     rho = cor;
     tval = sign(rho) .* Inf;
     k = (abs(rho) < 1);
-    tval(k) = rho(k) .* sqrt((n - 2) ./ (1 - rho(k) .^ 2));
-    p = 2 * tcdf(-abs(tval), n - 2);
+    tval(k) = rho(k) .* sqrt((ndim - 2) ./ (1 - rho(k) .^ 2));
+    p = 2 * tcdf(-abs(tval), ndim - 2);
 end
