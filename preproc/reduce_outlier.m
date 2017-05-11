@@ -152,7 +152,6 @@ for n = 1:length(grpList)
     
     num_data = numel(xInGrp);
     num_out = length(find(outInd));
-    num_rd  = sum(sum(outInd, dim) >= 1);
     % Disp info
     if isVerbose
         fprintf('%s %s: %d / %d (%.2f)\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), ...
@@ -169,8 +168,10 @@ end
 if do_remove
     if dim == 1
         y(:, rd_ind) = [];
+        num_rd = sum(rd_ind);
     elseif dim == 2
         y(rd_ind, :) = [];
+        num_rd = sum(rd_ind);
     end
 
     fprintf('%s %s: %d\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), ...
