@@ -5,11 +5,11 @@ function [cor, tval, p] = fastcorr(x, y)
 %
 % Inputs:
 %
-% - x, y [M x N matrix] : Input Matrix(es). Each column is a single sample.
+% - x, y [d x M and d x N matrix] : Input Matrix(es). Each column is a single sample.
 %
 % Outputs:
 %
-% - cor [N x N matrix] : Correlation matrix between x and y.
+% - cor [M x N matrix] : Correlation matrix between x and y.
 %
 % Note:
 %
@@ -17,7 +17,6 @@ function [cor, tval, p] = fastcorr(x, y)
 %
 
 ndim = size(x, 1); % N dimension
-nsmp = size(x, 2); % N sample
 
 %% Main
 if ~exist('y', 'var')
@@ -26,9 +25,10 @@ else
     xm = (x - repmat(mean(x), ndim, 1));
     ym = (y - repmat(mean(y), ndim, 1));
 
-    sx = repmat(sqrt(sum(xm .^ 2, 1)), nsmp, 1);
-    sy = repmat(sqrt(sum(ym .^ 2, 1)), nsmp, 1);
-    cor = (xm' * ym) ./ (sx' .* sy);
+    sx = sqrt(sum(xm .^ 2, 1));
+    sy = sqrt(sum(ym .^ 2, 1));
+
+    cor = (xm' * ym) ./ (sx' * sy);
 
     % Equivalent to the following code:
     %for i = 1:size(x, 2)
