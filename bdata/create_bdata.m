@@ -18,6 +18,8 @@ runs     = [];
 blocks   = [];
 labels   = [];
 
+suppdat = [];
+
 %% Load EPIs -----------------------------------------------------------
 sesnum   = 1;
 runnum   = 1;
@@ -53,7 +55,23 @@ for ises = 1:length(builder.ses)
 
             blocknum = blocknum + 1;
         end
-        
+
+        % Add supplement data
+        for k = 1:length(builder.ses(ises).run(irun).supplement)
+            skey = builder.ses(ises).run(irun).supplement(k).key;
+            sdat = builder.ses(ises).run(irun).supplement(k).value;
+
+            if length(suppdat) < k
+                suppdat(k).name = skey;
+                suppdat(k).data = sdat;
+            else
+                if ~strcmp(suppdat(k).name, skey)
+                    error('Incorrect name in supplement data.');
+                end
+                suppdat(k).data = [suppdat(k).data; sdat];
+            end
+        end
+
         runnum = runnum + 1;
     end
     
@@ -99,6 +117,10 @@ end
 [dataSet, metaData] = add_dataset(dataSet, metaData, runs,     'Run',       '1 = run number');
 [dataSet, metaData] = add_dataset(dataSet, metaData, blocks,   'Block',     '1 = block number');
 [dataSet, metaData] = add_dataset(dataSet, metaData, labels,   'Label',     '1 = labels');
+
+for i = 1:length(suppdat)
+    [dataSet, metaData] = add_dataset(dataSet, metaData, suppdat(i).data, suppdat(i).name, sprintf('1 = %s', suppdat(i).name));
+end
 
 % Add voxel xyz coordinates
 metaData = add_voxelxyz(metaData, vxyz, 'VoxelData');
