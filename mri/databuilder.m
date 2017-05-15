@@ -32,7 +32,7 @@ for i = 1:length(entry)
         fprintf('%s does not exist. Skipped.\n', entry{i});
         continue;
     end
-    
+
     epifilesAll = getfileindir(fullfile(entry{i}, model.epidir), 'nii');
     taskfiles = getfileindir(fullfile(entry{i}, model.taskdir), 'mat');
 
@@ -46,8 +46,18 @@ for i = 1:length(entry)
     sesEpi  = split_sessions(epifiles);
     sesTask = split_sessions(taskfiles);
 
+    % Get SPM realign parameter files
+    spmrpfiles = get_spmrpfiles(fullfile(entry{i}, model.epidir));
+
     for s = 1:length(sesEpi)
         builder.ses(sesnum).id = sprintf('ses-%02d', sesnum);
+
+        % Load SPM realign parameters in the session
+        if length(spmrpfiles) >= s
+            mpses = textread(spmrpfiles{s});
+        else
+            mpses = [];
+        end
 
         for r = 1:length(sesEpi{s});
             builder.ses(sesnum).run(r).id = sprintf('run-%02d', r);
@@ -58,7 +68,19 @@ for i = 1:length(entry)
             for n = 1:length(sesTask{s}{r})
                 builder.ses(sesnum).run(r).taskfile{n, 1} = fullfile(entry{i}, model.taskdir, sesTask{s}{r}{n});
             end
+
+            % Add SPM realign parameters as supplement data
+            if ~isempty(mpses)
+                runlen = length(spm_vol(builder.ses(sesnum).run(r).epifile{1, 1}));
+
+                mp = mpses(1:runlen, :);
+                mpses(1:runlen, :) = [];
+
+                builder.ses(sesnum).run(r).supplement(1).key = 'MotionParameter';
+                builder.ses(sesnum).run(r).supplement(1).value = mp;
+            end
         end
+
         sesnum = sesnum + 1;
     end
 end
@@ -93,4 +115,18 @@ for i = 1:length(filelist)
     else
         ses{sesnum}{end+1} = {filelist{i}};
     end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function spmrpfiles = get_spmrpfiles(epidir)
+% Returns SPM realign parameter files
+%
+
+spmrpfiles = {};
+rpfiles = dir(fullfile(epidir, 'rp_*.txt'));
+for k = 1:length(rpfiles)
+    rpfilefull = fullfile(epidir, rpfiles(k).name);
+    fprintf('SPM realign parameter file detected: %s\n', rpfilefull);
+    spmrpfiles{k} = rpfilefull;
 end
