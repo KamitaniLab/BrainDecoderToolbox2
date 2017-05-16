@@ -82,33 +82,28 @@ end
 
 roi = [];
 
-%% ROI Masks
-if isfield(builder, 'roi') && isfield(builder.roi, 'mask')
-    maskspec = builder.roi.mask;
+if isfield(builder, 'roi')
 
-    maskfiles = {};
-    for i = 1:length(maskspec)
-        fs = dir(maskspec{i});
-        fpath = fileparts(maskspec{i});
-        
-        for j = 1:length(fs)
-            maskfiles{end+1, 1} = fullfile(fpath, fs(j).name);
+    for i = 1:length(builder.roi)
+
+        roiname = builder.roi(i).name;
+
+        if isfield(builder.roi(i), 'source')
+            % Load ROI from a mask file
+            roimaskfile = builder.roi(i).source;
+
+            [mask, mxyz] = load_epi(roimaskfile);
+
+            ind = length(roi);
+            roi(ind + 1).name = roiname;
+            roi(ind + 1).xyz = mxyz(:, mask(:) ~= 0);
+        else isfield(builder.roi(i), 'xyz')
+            % Add ROI xyz
+            roi(ind + 1).name = roiname;
+            roi(ind + 1).xyz = builder.roi(i).xyz;
         end
     end
-
-    for i = 1:length(maskfiles)
-        [fpath, fbase, fext] = fileparts(maskfiles{i});
-
-        [mask, mxyz] = load_epi(maskfiles{i});
-
-        ind = length(roi);
-        roi(ind + 1).name = fbase;
-        roi(ind + 1).xyz = mxyz(:, mask(:) ~= 0);
-    end
 end
-
-%% ROI xyz
-% Not supported yet
 
 %% Create dataSet+metaData ---------------------------------------------
 [dataSet, metaData] = initialize_dataset();
