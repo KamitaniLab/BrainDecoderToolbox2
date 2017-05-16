@@ -58,8 +58,8 @@ for ises = 1:length(builder.ses)
 
         % Add supplement data
         for k = 1:length(builder.ses(ises).run(irun).supplement)
-            skey = builder.ses(ises).run(irun).supplement(k).key;
-            sdat = builder.ses(ises).run(irun).supplement(k).value;
+            skey = builder.ses(ises).run(irun).supplement(k).name;
+            sdat = builder.ses(ises).run(irun).supplement(k).data;
 
             if length(suppdat) < k
                 suppdat(k).name = skey;

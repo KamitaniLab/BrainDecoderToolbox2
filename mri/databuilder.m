@@ -76,8 +76,8 @@ for i = 1:length(entry)
                 mp = mpses(1:runlen, :);
                 mpses(1:runlen, :) = [];
 
-                builder.ses(sesnum).run(r).supplement(1).key = 'MotionParameter';
-                builder.ses(sesnum).run(r).supplement(1).value = mp;
+                builder.ses(sesnum).run(r).supplement(1).name = 'MotionParameter';
+                builder.ses(sesnum).run(r).supplement(1).data = mp;
             end
         end
 
