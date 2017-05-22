@@ -17,6 +17,8 @@ function roiFlag = get_roiflag(roiXyz, xyz)
 % - roiFlag [M * N matrix] : ROI flag matrix (M = ROI num, N = voxel num)
 %
 
+tol = 3;
+
 if iscell(roiXyz)
     roiXyzCell = roiXyz;
 else
@@ -28,7 +30,10 @@ nVox = size(xyz, 2);
 
 roiFlag = false(nRoi, nVox);
 
+xyz = int32(xyz .* 10^tol); % Tolerance
+
 for n = 1:length(roiXyzCell)
-    ind = ismember(xyz', roiXyzCell{n}', 'rows');
+    roixyz = int32(roiXyzCell{n} .* 10^tol); % Tolerance
+    ind = ismember(xyz', roixyz', 'rows');
     roiFlag(n, :) = ind';
 end
