@@ -44,7 +44,7 @@ for ises = 1:length(builder.ses)
         runs     = [runs; repmat(runnum, vollen, 1)];
 
         % TODO: add voxel XYZ consistency check
-        
+
         % Design (blocks and labels)
         for iblock = 1:size(builder.ses(ises).run(irun).design, 1)
             blen = builder.ses(ises).run(irun).design(iblock, 2);
@@ -74,7 +74,7 @@ for ises = 1:length(builder.ses)
 
         runnum = runnum + 1;
     end
-    
+
     sesnum = sesnum + 1;
 end
 
@@ -113,6 +113,8 @@ end
 [dataSet, metaData] = add_dataset(dataSet, metaData, blocks,   'Block',     '1 = block number');
 [dataSet, metaData] = add_dataset(dataSet, metaData, labels,   'Label',     '1 = labels');
 
+clear braindat sessions runs blocks labels;
+
 for i = 1:length(suppdat)
     [dataSet, metaData] = add_dataset(dataSet, metaData, suppdat(i).data, suppdat(i).name, sprintf('1 = %s', suppdat(i).name));
 end
@@ -122,11 +124,20 @@ metaData = add_voxelxyz(metaData, vxyz, 'VoxelData');
 
 % Add ROIs
 for i = 1:length(roi)
-    roiflag = get_roiflag(roi(i).xyz, vxyz);
+    roiflag(i, :) = get_roiflag(roi(i).xyz, vxyz);
 
     metaData = add_metadata(metaData, ...
                             roi(i).name, ...
                             sprintf('1 = ROI %s', roi(i).name), ...
-                            roiflag, ...
+                            roiflag(i, :), ...
                             'VoxelData');
+end
+
+% Remove voxels out of ROIs
+removevox = true;
+if removevox
+    fprintf('Removeing voxels out of ROIs\n');
+    isroi = logical(sum(roiflag, 1));
+    dataSet(:, ~isroi) = [];
+    metaData.value(:, ~isroi) = [];
 end
