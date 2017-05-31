@@ -26,10 +26,10 @@ function [dataset, meta_data, discarded_fields] = convert_from_bdtb(D)
 %
 
 % Set basic meta data keys and descriptions
-feature_key = 'Feature'; feature_description = 'Index for features';
-label_key   = 'Label';   label_description   = 'Index for labels';
-block_key   = 'Block';   block_description   = 'Index for block numbers';
-run_key     = 'Run';     run_description     = 'Index for run numbers';
+feature_key = 'VoxelData'; feature_description = '1 = Voxel data';
+label_key   = 'Label';     label_description   = '1 = Labels';
+block_key   = 'Block';     block_description   = '1 = Block numbers';
+run_key     = 'Run';       run_description     = '1 = Run numbers';
 
 roi_prefix    = 'ROI_';
 label_prefix  = 'Label_';
@@ -110,9 +110,9 @@ meta_data = add_metadata(meta_data, run_key,     run_description,     [ zeros(1,
 
 % fMRI data
 if isfield(D, 'xyz')
-    meta_data = add_metadata(meta_data, 'voxel_x', 'voxel x coordinate', [ D.xyz(1, :), nan(1, numAddCols) ]);
-    meta_data = add_metadata(meta_data, 'voxel_y', 'voxel y coordinate', [ D.xyz(2, :), nan(1, numAddCols) ]);
-    meta_data = add_metadata(meta_data, 'voxel_z', 'voxel z coordinate', [ D.xyz(3, :), nan(1, numAddCols) ]);
+    meta_data = add_metadata(meta_data, 'voxel_x', 'Voxel x coordinate', [ D.xyz(1, :), nan(1, numAddCols) ]);
+    meta_data = add_metadata(meta_data, 'voxel_y', 'Voxel y coordinate', [ D.xyz(2, :), nan(1, numAddCols) ]);
+    meta_data = add_metadata(meta_data, 'voxel_z', 'Voxel z coordinate', [ D.xyz(3, :), nan(1, numAddCols) ]);
 
     field_unused(strcmp(d_fields, 'xyz')) = false;
 end
@@ -122,7 +122,7 @@ for n = 1:length(roiNameList)
     roiName = roiNameList{n}; % Current ROI name
     roiInd  = roiIndList{n};  % Current ROI index
 
-    roiDescpriton = sprintf('1 = in ROI %s; 0 = not in ROI %s', roiName, roiName);
+    roiDescpriton = sprintf('1 = ROI %s', roiName);
 
     roiVector           = [ zeros(1, numFeature), nan(1, numAddCols) ];
     roiVector(roiInd) = 1;
