@@ -106,14 +106,23 @@ function ses = split_sessions(filelist)
 
 ses = {};
 for i = 1:length(filelist)
-    tk = regexp(filelist{i}, '.*_ses-([0-9]+)_.*', 'tokens');
+    tk = regexp(filelist{i}, '.*_ses-([0-9]+)_run-([0-9]+)_.*', 'tokens');
 
     sesnum = str2num(tk{1}{1});
+    runnum = str2num(tk{1}{2});
 
     if length(ses) < sesnum
-        ses{sesnum} = {{filelist{i}}};
+        ses{end+1} = {};
+    end
+
+    if length(ses{sesnum}) < runnum
+        ses{sesnum}{end+1} = {};
+    end
+
+    if length(ses{sesnum}{runnum}) == 0;
+        ses{sesnum}{runnum} = {filelist{i}};
     else
-        ses{sesnum}{end+1} = {filelist{i}};
+        ses{sesnum}{runnum}{end+1} = filelist{i};
     end
 end
 
