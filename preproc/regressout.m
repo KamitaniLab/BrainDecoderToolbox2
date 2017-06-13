@@ -66,12 +66,8 @@ for n = 1:numGrp
     else
         regresgrp = [];
     end
-    
-    if removeDc
-        dcComp = ones(numSample, 1);
-    else
-        dcComp = [];
-    end
+
+    dcComp = ones(numSample, 1);
 
     if linearDet
         lineTrend = [1:numSample]' / numSample;
@@ -83,7 +79,14 @@ for n = 1:numGrp
 
     if ~isempty(regmat)
         w = (regmat' * regmat) \ (regmat' * xgrp);
+
+        if ~removeDc
+            regmat = regmat(:, 2:end);
+            w = w(2:end, :);
+        end
+
         y(gind, :) = xgrp - regmat * w;
+
     else
         % Do nothings
         y(gind, :) = xgrp;
