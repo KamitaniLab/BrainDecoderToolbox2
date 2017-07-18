@@ -5,7 +5,7 @@ function builder = databuilder(entry, model)
 %
 % - entry [char or cell]     : Data entry. Currently, (a list of) data
 %                              directory is supported.
-% - model [struct, optional] : Data model (unsupported)
+% - model [struct, optional] : Data model
 %
 % Outputs:
 %
@@ -17,6 +17,10 @@ if ~exist('model', 'var')
     model.epidir     = 'epi';
     model.taskdir    = 'task';
     model.epifilefmt = '^ra.*_ses-[0-9]+_run-[0-9]+_bold.nii';
+end
+
+if ~isfield(model, 'taskfilefmt')
+    model.taskfilefmt = '';
 end
 
 %% Parse data directories
@@ -34,14 +38,10 @@ for i = 1:length(entry)
     end
 
     epifilesAll = getfileindir(fullfile(entry{i}, model.epidir), 'nii');
-    taskfiles = getfileindir(fullfile(entry{i}, model.taskdir), 'mat');
+    taskfilesAll = getfileindir(fullfile(entry{i}, model.taskdir), 'mat');
 
-    epifiles = {};
-    for j = 1:length(epifilesAll)
-        if regexp(epifilesAll{j}, model.epifilefmt)
-            epifiles{end+1, 1} = epifilesAll{j};
-        end
-    end
+    epifiles = get_filelist(epifilesAll, model.epifilefmt);
+    taskfiles = get_filelist(taskfilesAll, model.taskfilefmt);
 
     sesEpi  = split_sessions(epifiles);
     sesTask = split_sessions(taskfiles);
@@ -52,9 +52,11 @@ for i = 1:length(entry)
     for s = 1:length(sesEpi)
         builder.ses(sesnum).id = sprintf('ses-%02d', sesnum);
 
+        actualsesnum = get_actualsesnum(sesEpi{s}{1}{1});
+
         % Load SPM realign parameters in the session
-        if length(spmrpfiles) >= s
-            mpses = textread(spmrpfiles{s});
+        if length(spmrpfiles) >= actualsesnum
+            mpses = textread(spmrpfiles{actualsesnum});
         else
             mpses = [];
         end
@@ -100,31 +102,73 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+function filelist = get_filelist(allfiles, fmt)
+% Returns a list of files matching to 'fmt'
+
+if isempty(fmt)
+    filelist = allfiles;
+else
+    filelist = {};
+    for i = 1:length(allfiles)
+        if regexp(allfiles{i}, fmt)
+            filelist{end+1, 1} = allfiles{i};
+        end
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function ses = split_sessions(filelist)
 % Split a file list to sessions
 %
 
-ses = {};
+sesnumlst = [];
+runnumlst = [];
+filenumlst = [];
 for i = 1:length(filelist)
     tk = regexp(filelist{i}, '.*_ses-([0-9]+)_run-([0-9]+)_.*', 'tokens');
 
-    sesnum = str2num(tk{1}{1});
-    runnum = str2num(tk{1}{2});
+    sesnumlst(i) = str2num(tk{1}{1});
+    runnumlst(i) = str2num(tk{1}{2});
 
-    if length(ses) < sesnum
-        ses{end+1} = {};
-    end
-
-    if length(ses{sesnum}) < runnum
-        ses{sesnum}{end+1} = {};
-    end
-
-    if length(ses{sesnum}{runnum}) == 0;
-        ses{sesnum}{runnum} = {filelist{i}};
+    if i > 1
+        if sesnumlst(i) == sesnumlst(i - 1) && runnumlst(i) == runnumlst(i - 1)
+            filenumlst(i) = filenumlst(i - 1) + 1;
+        else
+            filenumlst(i) = 1;
+        end
     else
-        ses{sesnum}{runnum}{end+1} = filelist{i};
+        filenumlst(i) = 1;
     end
 end
+
+ses = {};
+sesnumset = unique(sesnumlst);
+runnumses = [];
+for i = 1:length(sesnumset)
+    ses{end+1} = {};
+    runnumses(end+1) = max(runnumlst(sesnumlst == sesnumset(i)));
+    for j = 1:runnumses(end)
+        ses{end}{end+1} = {};
+    end
+end
+
+for i = 1:length(filelist)
+    sind = sesnumset == sesnumlst(i);
+    rind = 1:runnumses(sind) == runnumlst(i);
+    find = filenumlst(i);
+
+    ses{sind}{rind}{find} = filelist{i};
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function sesnum = get_actualsesnum(s)
+% Returns actual ses num
+%
+
+tk = regexp(s, '.*_ses-([0-9]+)_.*', 'tokens');
+sesnum = str2num(tk{1}{1});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
