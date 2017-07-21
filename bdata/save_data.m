@@ -9,13 +9,25 @@ function save_data(fileName, dataSet, metaData, varargin)
 %
 % Inputs:
 %
-% - fileName : The name of a saved file
+% - fileName : Save file name. 'mat' and 'h5' are acceptable.
 % - dataSet  : Dataset matrix
 % - metaData : Metadata structure
 %
 % Outputs:
 %
 % None
+%
+% Note:
+%
+% The saved file contains:
+%
+% - dataSet       : Dataset matrix
+% - metaData      : Metadata structure
+% - createScript  : Path to the script file which called this function
+% - callStack     : Call stack
+% - callStackCode : Code of routines in the call stack
+% - createDateRaw : Timestamp
+% - createDate    : Timestamp (human readable)
 %
 
 opt = bdt_getoption(varargin, ...
@@ -38,8 +50,27 @@ end
 [st, ind] = dbstack('-completenames');
 if length(st) == 1
     createScript = '<Directly called>';
+    callStack = {};
+    callStackCode = {};
 else
-    createScript = st(ind + 1).file;
+    createScript = st(ind+1).file;
+    
+    for i = ind+1:length(st)
+        callStack{i-1, 1} = sprintf('%s:%d', st(i).file, st(i).line);
+
+        % Load script file contents
+        scriptcontents = '';
+
+        fid = fopen(st(i).file, 'rt');
+        tline = fgets(fid);
+        while ischar(tline)
+            scriptcontents = [scriptcontents, tline];
+            tline = fgets(fid);
+        end
+        fclose(fid);
+
+        callStackCode{i-1, 1} = scriptcontents;
+    end
 end
 
 % Get data creation time
@@ -51,12 +82,14 @@ switch fileType
   case 'mat'
     save(fileName, ...
          'dataSet', 'metaData', ...
-         'createScript', 'createDateRaw', 'createDate', ...
+         'createScript', 'callStack', 'callStackCode', 'createDateRaw', 'createDate', ...
          save_ver);
   case 'hdf5'
     dat.dataSet = dataSet;
     dat.metaData = metaData;
     dat.createScript = createScript;
+    dat.callStack = callStack;
+    dat.callStackCode = callStackCode;
     dat.createDateRaw = createDateRaw;
     dat.createDate = createDate;
 
@@ -64,7 +97,7 @@ switch fileType
 
   otherwise
     error('save_data:UnkownFileType', ...
-          [ 'Unknown file type: ' fileType ]);
+          ['Unknown file type: ', fileType]);
 end
 
 
@@ -125,4 +158,3 @@ H5D.close(didMdVal);
 
 % Finialization
 H5F.close(fid);
-
