@@ -12,16 +12,17 @@ function builder = databuilder(entry, model)
 % - builder [struct] : Standard data builder
 %
 
+
 if ~exist('model', 'var')
     % Default data model (Nifti-based dataset)
-    model.epidir     = 'epi';
-    model.taskdir    = 'task';
-    model.epifilefmt = '^ra.*_ses-[0-9]+_run-[0-9]+_bold.nii';
+    model.epidir  = 'epi';
+    model.taskdir = 'task';
 end
 
-if ~isfield(model, 'taskfilefmt')
-    model.taskfilefmt = '';
-end
+if ~isfield(model, 'epidir'),      model.epidir      = 'epi';  end
+if ~isfield(model, 'taskdir'),     model.taskdir     = 'task'; end
+if ~isfield(model, 'epifilefmt'),  model.epifilefmt  = '';     end
+if ~isfield(model, 'taskfilefmt'), model.taskfilefmt = '';     end
 
 %% Parse data directories
 if ~iscell(entry)
@@ -37,11 +38,29 @@ for i = 1:length(entry)
         continue;
     end
 
+    % Get EPI and task files
     epifilesAll = getfileindir(fullfile(entry{i}, model.epidir), 'nii');
     taskfilesAll = getfileindir(fullfile(entry{i}, model.taskdir), 'mat');
 
-    epifiles = get_filelist(epifilesAll, model.epifilefmt);
-    taskfiles = get_filelist(taskfilesAll, model.taskfilefmt);
+    if isempty(model.epifilefmt)
+        epifilefmt = get_epifilefmt(epifilesAll);
+    else
+        epifilefmt = model.epifilefmt;
+    end
+
+    taskfilefmt = model.taskfilefmt;
+
+    epifiles = get_filelist(epifilesAll, epifilefmt);
+    taskfiles = get_filelist(taskfilesAll, taskfilefmt);
+
+    fprintf('Detected EPI files (%d files):\n', length(epifiles));
+    for j = 1:length(epifiles)
+        fprintf('%s\n', epifiles{j});
+    end
+    fprintf('Detected task files (%d files):\n', length(taskfiles));
+    for j = 1:length(taskfiles)
+        fprintf('%s\n', taskfiles{j});
+    end
 
     sesEpi  = split_sessions(epifiles);
     sesTask = split_sessions(taskfiles);
@@ -49,6 +68,7 @@ for i = 1:length(entry)
     % Get SPM realign parameter files
     spmrpfiles = get_spmrpfiles(fullfile(entry{i}, model.epidir));
 
+    % List files in each session
     for s = 1:length(sesEpi)
         builder.ses(sesnum).id = sprintf('ses-%02d', sesnum);
 
@@ -61,6 +81,7 @@ for i = 1:length(entry)
             mpses = [];
         end
 
+        % List files in each run
         for r = 1:length(sesEpi{s});
             builder.ses(sesnum).run(r).id = sprintf('run-%02d', r);
 
@@ -182,4 +203,35 @@ for k = 1:length(rpfiles)
     rpfilefull = fullfile(epidir, rpfiles(k).name);
     fprintf('SPM realign parameter file detected: %s\n', rpfilefull);
     spmrpfiles{k} = rpfilefull;
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function pat = get_epifilefmt(filelist)
+% Returns a file name pattern
+%
+
+rapat = '^ra.+_.*_bold\.nii';
+rpat  = '^r[^m]+_.*_bold\.nii';
+
+% Analyze preprocessing type
+ptype = 0;
+for i = 1:length(filelist)
+    if regexp(filelist{i}, rapat)
+        ptype = 1;
+        break;
+    elseif regexp(filelist{i}, rpat)
+        ptype = 2;
+    end
+end
+
+switch ptype
+  case 1
+    fprintf('Preprocessing type: stc + realign + coreg + resliced\n');
+    pat = rapat;
+  case 2
+    fprintf('Preprocessing type: realign + coreg + resliced\n');
+    pat = rpat;
+  otherwise
+    error('Unrecognizable file name pattern');
 end
