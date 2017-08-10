@@ -136,7 +136,7 @@ end
 % Remove voxels out of ROIs
 removevox = true;
 if removevox
-    fprintf('Removeing voxels out of ROIs\n');
+    fprintf('Removing voxels out of ROIs\n');
     isroi = logical(sum(roiflag, 1));
     dataSet(:, ~isroi) = [];
     metaData.value(:, ~isroi) = [];
