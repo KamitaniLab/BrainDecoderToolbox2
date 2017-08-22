@@ -22,7 +22,4 @@ function [dataSet, metaData] = drop_data(dataSet, metaData, expr)
 %     [dataSet, metaData] = drop_data(dataSet, metaData, 'ROI_A = 1')
 %
 
-[y, ind] = select_data(dataSet, metaData, expr);
-
-dataSet(:, ind) = [];
-metaData.value(:, ind) = [];
+[dataSet, metaData] = drop_dataset(dataSet, metaData, expr);
