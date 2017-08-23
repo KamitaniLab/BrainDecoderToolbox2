@@ -150,8 +150,8 @@ for i = 1:length(filelist)
     sesnum = tk{1}{1};
     runnum = tk{1}{2};
 
-    [sesst, sesind] = add_item(sesst, sesnum, []);
-    [sesst(sesind).value, runind] = add_item(sesst(sesind).value, runnum, {});
+    [sesst, sesind] = add_item_ifnot(sesst, sesnum, []);
+    [sesst(sesind).value, runind] = add_item_ifnot(sesst(sesind).value, runnum, {});
     sesst(sesind).value(runind).value{end + 1, 1} = filelist{i};
 end
 
