@@ -143,43 +143,49 @@ function ses = split_sessions(filelist)
 % Split a file list to sessions
 %
 
-sesnumlst = [];
-runnumlst = [];
-filenumlst = [];
+sesst = [];
 for i = 1:length(filelist)
     tk = regexp(filelist{i}, '.*_ses-([0-9]+)_run-([0-9]+)_.*', 'tokens');
 
-    sesnumlst(i) = str2num(tk{1}{1});
-    runnumlst(i) = str2num(tk{1}{2});
+    sesnum = tk{1}{1};
+    runnum = tk{1}{2};
 
-    if i > 1
-        if sesnumlst(i) == sesnumlst(i - 1) && runnumlst(i) == runnumlst(i - 1)
-            filenumlst(i) = filenumlst(i - 1) + 1;
-        else
-            filenumlst(i) = 1;
-        end
-    else
-        filenumlst(i) = 1;
-    end
+    [sesst, sesind] = add_item(sesst, sesnum, []);
+    [sesst(sesind).value, runind] = add_item(sesst(sesind).value, runnum, {});
+    sesst(sesind).value(runind).value{end + 1, 1} = filelist{i};
 end
 
 ses = {};
-sesnumset = unique(sesnumlst);
-runnumses = [];
-for i = 1:length(sesnumset)
-    ses{end+1} = {};
-    runnumses(end+1) = max(runnumlst(sesnumlst == sesnumset(i)));
-    for j = 1:runnumses(end)
-        ses{end}{end+1} = {};
-    end
+for i = 1:length(sesst)
+for j = 1:length(sesst(i).value)
+    ses{i, 1}{j, 1} = sesst(i).value(j).value;
+end
 end
 
-for i = 1:length(filelist)
-    sind = sesnumset == sesnumlst(i);
-    rind = 1:runnumses(sind) == runnumlst(i);
-    find = filenumlst(i);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ses{sind}{rind}{find} = filelist{i};
+function [s, ind] = add_item_ifnot(s, id, default_value)
+
+if length(s) == 0
+    ind = 1;
+    s(ind).id = id;
+    s(ind).value = default_value;
+else
+    newitem = true;
+
+    for i = 1:length(s)
+        if strcmp(s(i).id, id)
+            ind = i;
+            newitem = false;
+            break;
+        end
+    end
+
+    if newitem
+        ind = length(s) + 1;
+        s(ind).id = id;
+        s(ind).value = default_value;
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
