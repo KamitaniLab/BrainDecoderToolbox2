@@ -188,13 +188,14 @@ if do_remove
     if dim == 1
         y(:, rd_ind) = [];
         num_rd = sum(rd_ind);
+        fprintf('%s %s: %d\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), ...
+                'Removed columns: ', num_rd);
     elseif dim == 2
         y(rd_ind, :) = [];
         num_rd = sum(rd_ind);
+        fprintf('%s %s: %d\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), ...
+                'Removed rows: ', num_rd);
     end
-
-    fprintf('%s %s: %d\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), ...
-            'Removed elements', num_rd);
 
     indRemoved = rd_ind;
 else
@@ -226,7 +227,7 @@ else
         indmap(indRemoved) = [];
         varargout{1} = indmap;
     else
-        % Returns index for removed elements
+        % Returns index for removed rows/columns
         varargout{1} = indRemoved;
     end
 end
