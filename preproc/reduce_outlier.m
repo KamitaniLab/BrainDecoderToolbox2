@@ -1,5 +1,5 @@
 function [y, varargout]  = reduce_outlier(x, varargin)
-% reduce_outlier    Reduce outlier values
+% reduce_outlier    Reduce outlier values from `x`
 %
 % This file is a part of BrainDecoderToolbox2
 %
@@ -7,26 +7,38 @@ function [y, varargout]  = reduce_outlier(x, varargin)
 %
 %     y = reduce_outlier(x)
 %     y = reduce_outlier(x, OptionKey, OptionValue, ...)
-%     [y, rd_ind] = reduce_outlier(x)
-%     [y, rd_ind] = reduce_outlier(x, OptionKey, OptionValue, ...)
+%     [y, ind] = reduce_outlier(x)
+%     [y, ind] = reduce_outlier(x, OptionKey, OptionValue, ...)
+%
+%     % Old arguments style
 %     y = reduce_outlier(x, groups)
 %     y = reduce_outlier(x, groups, OptionKey, OptionValue, ...)
-%     [y, rd_ind] = reduce_outlier(x, groups)
-%     [y, rd_ind] = reduce_outlier(x, groups, OptionKey, OptionValue, ...)
+%     [y, ind] = reduce_outlier(x, groups)
+%     [y, ind] = reduce_outlier(x, groups, OptionKey, OptionValue, ...)
+%
+% Inputs:
+%
+% - x [matrix] : Input data matrix
+%
+% Outputs:
+%
+% - y   [matrix] : Output data matrix
+% - ind [vector] : Either index of removed rows/columns or index map
 %
 % Options:
 %
 % - Group        [vector] : Grouping vector
-% - ByStd        [on/off] : Reduce outliers based on STD (default = on)
-% - ByMaxMin     [on/off] : Reduce outliers based on max and min values (default = on)
-% - Remove       [on/off] : Remove data containing outliers or not (default = off)
+% - ByStd        [on/off] : Reduce outliers based on SD or not (default: on)
+% - ByMaxMin     [on/off] : Reduce outliers based on max and min values or not (default: on)
+% - Remove       [on/off] : Remove rows or columns containing outliers or not (default: off)
 % - Dimension    [scalar] : Dimension of dataSet to calculate mean and std for the
-%                           reduction (1: time, 2: features; default = 1)
-% - NumIteration [scalar] : Num of iterations (default = 10)
-% - StdThreshold [scalar] : STD threshold (default = 3)
-% - Max          [scalar] : Max value (default = inf) 
-% - Min          [scalar] : Min value (default = -inf)
-% - Verbose      [on/off] : Enable verbose outputs or not (default = off)
+%                           reduction (1: time/sample, 2: feature; default: 1)
+% - NumIteration [scalar] : Num of iterations (default: 10)
+% - StdThreshold [scalar] : STD threshold (default: 3)
+% - Max          [scalar] : Max value (default: inf) 
+% - Min          [scalar] : Min value (default: -inf)
+% - IndexMap     [on/off] : Returns index map or not (default: off)
+% - Verbose      [on/off] : Enable verbose outputs or not (default: off)
 %
 
 
@@ -54,6 +66,7 @@ opt = bdt_getoption(optArgs, ...
                      {'StdThreshold', 'scalar', 3     }, ...
                      {'Max',          'scalar', inf   }, ...
                      {'Min',          'scalar', -inf  }, ...
+                     {'IndexMap',     'onoff',  false }, ...
                      {'Verbose',      'onoff',  false }});
 
 groups        = opt.Group;
@@ -67,6 +80,7 @@ std_threshold = opt.StdThreshold;
 max_val       = opt.Max;
 min_val       = opt.Min;
 isVerbose     = opt.Verbose;
+indexmap      = opt.IndexMap;
 
 if isempty(groups)
     groups = ones(size(x, 1), 1);
@@ -91,7 +105,7 @@ y = nan(size(x));
 if dim == 1
     rd_ind = false(1, size(x, 2));
 elseif dim == 2
-    rd_ind = false(1, size(x, 1));
+    rd_ind = false(size(x, 1), 1);
 end
 
 % Reduce outliers
@@ -148,10 +162,16 @@ for n = 1:length(grpList)
 
     % Get reduced data index
     outInd = outInd_up | outInd_lw | outInd_max | outInd_min;
-    rd_ind = rd_ind | sum(outInd, dim) >= 1;
-    
+
+    if dim == 1
+        rd_ind = rd_ind | sum(outInd, dim) >= 1;
+    elseif dim == 2
+        rd_ind(gInd) = rd_ind(gInd) | sum(outInd, dim) >= 1;
+    end
+
     num_data = numel(xInGrp);
     num_out = length(find(outInd));
+
     % Disp info
     if isVerbose
         fprintf('%s %s: %d / %d (%.2f)\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), ...
@@ -160,7 +180,6 @@ for n = 1:length(grpList)
     
     % Update data
     y(gInd, :) = xInGrp;
-    
     clear xInGrp;
 end
 
@@ -183,6 +202,7 @@ else
 end
 
 if retComp
+    % Returns companion data
     for i = 1:length(compData)
         if dim == 1
             compData{i}(:, indRemoved) = [];
@@ -193,7 +213,22 @@ if retComp
 
     varargout = compData;
 else
-    varargout{1} = indRemoved;
+    if indexmap
+        % Returns index map
+        if dim == 1
+            % Feature reduction
+            indmap = 1:size(x, 2);
+        elseif dim == 2
+            % Sample reduction
+            indmap = [1:size(x, 1)]';
+        end
+
+        indmap(indRemoved) = [];
+        varargout{1} = indmap;
+    else
+        % Returns index for removed elements
+        varargout{1} = indRemoved;
+    end
 end
 
 
