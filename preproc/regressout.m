@@ -51,6 +51,20 @@ end
 %% Main
 if isVerbose, fprintf('%s %s %s\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), 'Running', mfilename); end
 
+% Check input size
+nsample = size(x, 1);
+lengroup = length(groups);
+if nsample ~= lengroup
+    error('Num of samples in `x` (%d) and length of the group vector (%d) mismatch', nsample, lengroup);
+end
+
+if ~isempty(regressor)
+    lenreg = size(regressor, 1);
+    if nsample ~= lenreg
+        error('Num of samples in `x` (%d) and length of the regressor (%d) mismatch', nsample, lenreg);
+    end
+end
+
 grpList = unique(groups);
 numGrp  = length(grpList);
 

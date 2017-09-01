@@ -53,6 +53,13 @@ retComp = ~isempty(compData);
 %% Main
 if isVerbose, fprintf('%s %s %s\n', datestr(now, 'yyyy-mm-dd HH:MM:SS'), 'Running', mfilename); end
 
+% Check input size
+nsample = size(x, 1);
+lengroup = length(groups);
+if nsample ~= lengroup
+    error('Num of samples in `x` (%d) and length of the group vector (%d) mismatch', nsample, lengroup);
+end
+
 % Data settings
 grpList = unique(groups);
 numGrp  = length(grpList);
