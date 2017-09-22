@@ -1,18 +1,18 @@
-function [dataSet, metaData] = add_dataset(dataSet, metaData, x, attribute, description)
-% add_dataSet    Add `x` to `dataSet` with `attribute`
+function [dataSet, metaData] = add_dataset(dataSet, metaData, x, column, description)
+% add_dataSet    Add `x` to `dataSet` as `column`
 %
 % This file is a part of BrainDecoderToolbox2
 %
 % Usage:
 %
-%     [dataSet, metaData] = add_dataset(dataSet, metaData, x, attribute)
+%     [dataSet, metaData] = add_dataset(dataSet, metaData, x, column)
 %
 % Inputs:
 %
 % - dataSet     : Dataset matrix
 % - metaData    : Metadata structure
 % - x           : Data to be added to `dataSet`
-% - attribute   : Metadata key specifying the attribute of `x`
+% - column      : Metadata key specifying `x`
 % - description : Metadata description (optional)
 %
 % Outputs:
@@ -24,7 +24,7 @@ function [dataSet, metaData] = add_dataset(dataSet, metaData, x, attribute, desc
 %% Check input
 
 if ~exist('description', 'var')
-    description = sprintf('1 = %s', attribute);
+    description = sprintf('Column index for %s', column);
 end
 
 % Init metaData if `metaData` is empty
@@ -48,7 +48,7 @@ nNewFeat  = size(x, 2);
 nFeature  = size(metaData.value, 2);
 nMetaData = size(metaData.value, 1);
 
-indKey = strcmp(metaData.key, attribute);
+indKey = strcmp(metaData.key, column);
 
 if sum(indKey) == 1
     % Update existing meta-data for data attribution
@@ -60,7 +60,7 @@ if sum(indKey) == 1
 elseif sum(indKey) == 0
     % Add new metadata for data attribution
 
-    metaData.key{end+1} = attribute;
+    metaData.key{end+1} = column;
     metaData.description{end+1} = description;
 
     metaData.value = [ metaData.value,   nan(nMetaData, nNewFeat);
