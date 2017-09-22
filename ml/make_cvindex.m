@@ -36,31 +36,20 @@ elseif nargout == 2, returnMat = true;
 else   error('make_cvindex:InvalidOutput', 'Invalid output');
 end
 
-groupIndex  = uint32(groupIndex); % For speed up esp. with large groupIndex
-groupList   = unique(groupIndex);
-groupLength = length(groupList) ./ nFold; % Num of groups in one fold
-
-for n = 1:nFold
-    cv(n).testInds = false(size(groupIndex));
-
-    testGroup = groupList(1:groupLength);
-    groupList(1:groupLength) = [];
-
-    for t = 1:length(testGroup)
-        cv(n).testInds = cv(n).testInds | groupIndex == testGroup(t);
-    end
-
-    cv(n).trainInds = ~cv(n).testInds;
-end
+cvindex = cvindex_groupwise(groupIndex, nFold);
 
 if returnMat
-    for n = 1:length(cv)
-        trainInds(:, n) = cv(n).trainInds;
-        testInds(:, n)  = cv(n).testInds;
+    for n = 1:length(cvindex)
+        trainInds(:, n) = cvindex(n).trainIndex;
+        testInds(:, n)  = cvindex(n).testIndex;
     end
 
     varargout{1} = trainInds;
     varargout{2} = testInds;
 else
+    for n = 1:length(cvindex)
+        cv(n).trainInds = cvindex(n).trainIndex;
+        cv(n).testInds = cvindex(n).testIndex;
+    end
     varargout{1} = cv;
 end
