@@ -30,9 +30,7 @@ for i = 1:length(cvouter)
 
     if ~exist('nfoldInner', 'var'), nfoldInner = length(unique(groupTrain)); end
 
-    cvinner = cvindex_groupwise(groupTrain, nfoldInner);
-
-    cvouter(i).innerCvIndex = cvinner;
+    cvouter(i).cvIndexInner = cvindex_groupwise(groupTrain, nfoldInner);
 end
 
 cvindex = cvouter;
