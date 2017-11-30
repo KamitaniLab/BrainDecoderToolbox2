@@ -37,7 +37,22 @@ lastVol = 0;
 for n = 1:length(dataFiles)
     fprintf('Loading %s\n', dataFiles{n});
 
-    [vRaw, xyzVol] = spm_read_vols(spm_vol(dataFiles{n}));
+    [dpath, basename, ext] = fileparts(dataFiles{n});
+
+    if strcmp(ext, '.gz')
+        datafileCell = gunzip(dataFiles{n}, './');
+        % `gunzip` returns a cell.
+        datafile = datafileCell{1};
+    else
+        datafile = dataFiles{n};
+    end
+
+    [vRaw, xyzVol] = spm_read_vols(spm_vol(datafile));
+
+    if strcmp(ext, '.gz')
+        % Remove the gunziped file
+        delete(datafile)
+    end
 
     if ndims(vRaw) == 4
         % vRaw is 4-D data
@@ -79,6 +94,6 @@ for n = 1:length(dataFiles)
     elseif ~isequal(xyz, xyzVol)
         error('load_epi:VolumeCoordinateInconsistency', ...
               'Volume coordinate inconsistency detected');
-    end        
+    end
 
 end
