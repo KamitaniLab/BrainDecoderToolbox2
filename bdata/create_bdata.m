@@ -61,8 +61,15 @@ for ises = 1:length(builder.ses)
             skey = builder.ses(ises).run(irun).supplement(k).name;
             sdat = builder.ses(ises).run(irun).supplement(k).data;
 
+            if isfield(builder.ses(ises).run(irun).supplement(k), 'description')
+                sdesc = builder.ses(ises).run(irun).supplement(k).description;
+            else
+                sdec = skey;
+            end            
+
             if length(suppdat) < k
                 suppdat(k).name = skey;
+                suppdat(k).desc = sdesc;
                 suppdat(k).data = sdat;
             else
                 if ~strcmp(suppdat(k).name, skey)
@@ -116,7 +123,7 @@ end
 clear braindat sessions runs blocks labels;
 
 for i = 1:length(suppdat)
-    [dataSet, metaData] = add_dataset(dataSet, metaData, suppdat(i).data, suppdat(i).name, sprintf('1 = %s', suppdat(i).name));
+    [dataSet, metaData] = add_dataset(dataSet, metaData, suppdat(i).data, suppdat(i).name, sprintf('1 = %s', suppdat(i).desc));
 end
 
 % Add voxel xyz coordinates

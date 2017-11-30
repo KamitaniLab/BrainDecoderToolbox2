@@ -100,6 +100,7 @@ for i = 1:length(entry)
                 mpses(1:runlen, :) = [];
 
                 builder.ses(sesnum).run(r).supplement(1).name = 'MotionParameter';
+                builder.ses(sesnum).run(r).supplement(1).description = 'Motion (realign) parameters estimated with SPM';
                 builder.ses(sesnum).run(r).supplement(1).data = mp;
             end
         end
