@@ -46,6 +46,15 @@ for ises = 1:length(builder.ses)
         % TODO: add voxel XYZ consistency check
 
         % Design (blocks and labels)
+        nodesign = ~isfield(builder.ses(ises).run(irun), 'design') ...
+                   || isempty(builder.ses(ises).run(irun).design) ...
+                   || isnan(builder.ses(ises).run(irun).design);
+
+        if nodesign
+            fprintf('Design matrix is omitted. The resulting data lacks ''Block'' and ''Label''\n');
+            blocks = NaN;
+            labels = NaN;
+        else
         for iblock = 1:size(builder.ses(ises).run(irun).design, 1)
             blen = builder.ses(ises).run(irun).design(iblock, 2);
             blabel = builder.ses(ises).run(irun).design(iblock, 3:end);
@@ -54,6 +63,7 @@ for ises = 1:length(builder.ses)
             labels = [labels; repmat(blabel, blen, 1)];
 
             blocknum = blocknum + 1;
+        end
         end
 
         % Add supplement data
@@ -117,10 +127,15 @@ end
 [dataSet, metaData] = add_dataset(dataSet, metaData, braindat, 'VoxelData', '1 = voxel data');
 [dataSet, metaData] = add_dataset(dataSet, metaData, sessions, 'Session',   '1 = session number');
 [dataSet, metaData] = add_dataset(dataSet, metaData, runs,     'Run',       '1 = run number');
-[dataSet, metaData] = add_dataset(dataSet, metaData, blocks,   'Block',     '1 = block number');
-[dataSet, metaData] = add_dataset(dataSet, metaData, labels,   'Label',     '1 = labels');
 
-clear braindat sessions runs blocks labels;
+clear braindat sessions runs;
+
+if ~nodesign
+    [dataSet, metaData] = add_dataset(dataSet, metaData, blocks,   'Block',     '1 = block number');
+    [dataSet, metaData] = add_dataset(dataSet, metaData, labels,   'Label',     '1 = labels');
+
+    clear blocks labels;
+end
 
 for i = 1:length(suppdat)
     [dataSet, metaData] = add_dataset(dataSet, metaData, suppdat(i).data, suppdat(i).name, sprintf('1 = %s', suppdat(i).desc));
