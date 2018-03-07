@@ -47,8 +47,7 @@ for ises = 1:length(builder.ses)
 
         % Design (blocks and labels)
         nodesign = ~isfield(builder.ses(ises).run(irun), 'design') ...
-                   || isempty(builder.ses(ises).run(irun).design) ...
-                   || logical(sum(isnan(builder.ses(ises).run(irun).design(:))));
+                   || isempty(builder.ses(ises).run(irun).design);
 
         if nodesign
             fprintf('Design matrix is omitted. The resulting data lacks ''Block'' and ''Label''\n');
