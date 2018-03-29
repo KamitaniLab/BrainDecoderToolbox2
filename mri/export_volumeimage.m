@@ -5,10 +5,10 @@ function export_volumeimage(filename, dat, xyz, template)
 %
 % Inputs:
 %
-% - filename [char]       : Path to the exported brain image file
-% - dat      [N-d vector] : Voxel data
-% - xyz      [N-d vector] : Voxel xyz
-% - template [char]       : Path to a template (space defining) image file
+% - filename [char]         : Path to the exported brain image file
+% - dat      [N-d vector]   : Voxel data
+% - xyz      [3 x N matrix] : Voxel xyz
+% - template [char]         : Path to a template (space defining) image file
 %
 % Outputs:
 %
