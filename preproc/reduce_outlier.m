@@ -129,11 +129,17 @@ for n = 1:length(grpList)
         sd = std(xInGrp, 0, dim);
 
         if dim == 1
-            thup = repmat( mu + sd * std_threshold, nSmp, 1);
-            thlw = repmat( mu - sd * std_threshold, nSmp, 1);
+            repind = ones(nSmp, 1);
+            th = mu + sd * std_threshold;
+            thup = th(repind, :);
+            th = mu - sd * std_threshold;
+            thlw = th(repind, :);
         elseif dim == 2
-            thup = repmat( mu + sd * std_threshold, 1, nFeature);
-            thlw = repmat( mu - sd * std_threshold, 1, nFeature);
+            repind = ones(1, nFeature);
+            th = mu + sd * std_threshold;
+            thup = th(:, repind);
+            th = mu - sd * std_threshold;
+            thlw = th(:, repind);
         else
             error('reduce_outlier:InvalidDimension', ...
                   sprintf('Invalid dimensiton: %d\n', dim));
