@@ -94,12 +94,15 @@ for n = 1:numGrp
     if ~isempty(regmat)
         w = (regmat' * regmat) \ (regmat' * xgrp);
 
-        if ~removeDc
-            regmat = regmat(:, 2:end);
-            w = w(2:end, :);
-        end
-
         y(gind, :) = xgrp - regmat * w;
+
+        % Put back mean of the input when 'RemoveDC' is 'off', instead of
+        % discarding DC component regressor (to avoid multi-colinearity;
+        % suggested by Tomoyasu Horikawa).
+        if ~removeDc
+            dc = mean(xgrp, 1);
+            y(gind, :) = y(gind, :) + dc(ones(size(xgrp,1), 1), :);
+        end
 
     else
         % Do nothings
