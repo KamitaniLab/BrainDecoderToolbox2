@@ -34,7 +34,7 @@ for ises = 1:length(builder.ses)
 
         % EPI
         epifiles = builder.ses(ises).run(irun).epifile;
-        [vdat, vxyz] = load_epi(epifiles);
+        [vdat, vxyz, vijk] = load_epi(epifiles);
 
         vollen = size(vdat, 1);
         voxnum = size(vdat, 2);
@@ -142,6 +142,11 @@ end
 
 % Add voxel xyz coordinates
 metaData = add_voxelxyz(metaData, vxyz, 'VoxelData');
+
+% Add voxel indexes
+metaData = add_metadata(metaData, 'voxel_i', 'Voxel i index', vijk(1, :), 'VoxelData');
+metaData = add_metadata(metaData, 'voxel_j', 'Voxel j index', vijk(2, :), 'VoxelData');
+metaData = add_metadata(metaData, 'voxel_k', 'Voxel k index', vijk(3, :), 'VoxelData');
 
 % Add ROIs
 for i = 1:length(roi)
