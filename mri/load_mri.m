@@ -1,4 +1,4 @@
-function [data, xyz] = load_mri(dataFiles)
+function [data, xyz, ijk] = load_mri(dataFiles)
 % load_mri    Load MRI images.
 %
 % This file is a part of BrainDecoderToolbox2.
@@ -16,6 +16,7 @@ function [data, xyz] = load_mri(dataFiles)
 %
 % - data [M x N matrix] : Voxel data (M = Num volumes, N = Num voxels).
 % - xyz  [3 x N matrix] : XYZ coordinates of voxels.
+% - ijk  [3 x N matrix] : Indexes of voxels in 3D space.
 %
 % Requirements:
 %
@@ -31,6 +32,8 @@ end
 
 data = [];
 xyz  = [];
+ijk  = [];
+
 lastVol = 0;
 
 % Load EPI data
@@ -63,6 +66,8 @@ for n = 1:length(dataFiles)
         for i = 1:nVol;
             vTmp = vRaw(:, :, :, i);
             v(i, :) = vTmp(:)';
+
+            ijkTmp = get_indexes(size(vTmp));
         end
 
     elseif ndims(vRaw) == 3
@@ -71,6 +76,8 @@ for n = 1:length(dataFiles)
         nVoxel = numel(vRaw);
 
         v = vRaw(:)';
+
+        ijkTmp = get_indexes(size(vRaw));
     end
 
     if preAssignMem
@@ -96,4 +103,20 @@ for n = 1:length(dataFiles)
               'Volume coordinate inconsistency detected');
     end
 
+    % Check IJK
+    if isempty(ijk)
+        ijk = ijkTmp;
+    elseif ~isequal(ijk, ijkTmp)
+        error('load_mri:VolumeIndexInconsistency', ...
+              'Volume index inconsistency detected');
+    end
 end
+
+
+function ijk = get_indexes(vsize)
+% Return indexes (ijk) of the volume.
+%
+
+n = vsize(1) * vsize(2) * vsize(3);
+[i, j, k] = ind2sub(vsize, 1:n);
+ijk = [i; j; k];

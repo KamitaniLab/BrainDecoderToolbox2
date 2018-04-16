@@ -1,4 +1,4 @@
-function [data, xyz] = load_epi(dataFiles)
+function [data, xyz, ijk] = load_epi(dataFiles)
 % load_epi    Load EPI images
 %
 % This file is a part of BrainDecoderToolbox2
@@ -14,12 +14,13 @@ function [data, xyz] = load_epi(dataFiles)
 %
 % Outputs:
 %
-% - data [M * N matrix] : Voxel data (M = Num volumes, N = Num voxels)
-% - xyz  [3 * N matrix] : XYZ coordinates of voxels
+% - data [M * N matrix] : Voxel data (M = Num volumes, N = Num voxels).
+% - xyz  [3 * N matrix] : XYZ coordinates of voxels.
+% - ijk  [3 x N matrix] : Indexes of voxels in 3D space.
 %
 % Requirements:
 %
 % - SPM 5, 8, or 12 (`spm_vol` and `spm_read_vols`)
 %
 
-[data, xyz] = load_mri(dataFiles);
+[data, xyz, ijk] = load_mri(dataFiles);
