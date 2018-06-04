@@ -234,10 +234,8 @@ end
 
 switch ptype
   case 1
-    fprintf('Preprocessing type: stc + realign + coreg + resliced\n');
     pat = rapat;
   case 2
-    fprintf('Preprocessing type: realign + coreg + resliced\n');
     pat = rpat;
   otherwise
     error('Unrecognizable file name pattern');
