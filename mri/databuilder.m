@@ -17,10 +17,13 @@ if ~exist('model', 'var')
     % Default data model (Nifti-based dataset)
     model.epidir  = 'epi';
     model.taskdir = 'task';
+
+    model.epiprefix  = 'r';
 end
 
 if ~isfield(model, 'epidir'),      model.epidir      = 'epi';  end
 if ~isfield(model, 'taskdir'),     model.taskdir     = 'task'; end
+if ~isfield(model, 'epiprefix'),   model.epiprefix   = 'r';    end
 if ~isfield(model, 'epifilefmt'),  model.epifilefmt  = '';     end
 if ~isfield(model, 'taskfilefmt'), model.taskfilefmt = '';     end
 
@@ -43,7 +46,7 @@ for i = 1:length(entry)
     taskfilesAll = getfileindir(fullfile(entry{i}, model.taskdir), 'mat');
 
     if isempty(model.epifilefmt)
-        epifilefmt = get_epifilefmt(epifilesAll);
+        epifilefmt = get_epifilefmt(epifilesAll, model.epiprefix);
     else
         epifilefmt = model.epifilefmt;
     end
@@ -214,12 +217,16 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function pat = get_epifilefmt(filelist)
+function pat = get_epifilefmt(filelist, prefix)
 % Returns a file name pattern
 %
 
-rapat = '^ra.+_.*_bold\.nii';
-rpat  = '^r[^m]+_.*_bold\.nii';
+if ~exist('prefix', 'var')
+    prefix = 'r';
+end
+
+rapat = sprintf('^%sa.+_.*_bold\.nii', prefix);
+rpat = sprintf('^%s[^m]+_.*_bold\.nii', prefix);
 
 % Analyze preprocessing type
 ptype = 0;
