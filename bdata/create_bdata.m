@@ -149,6 +149,7 @@ metaData = add_metadata(metaData, 'voxel_j', 'Voxel j index', vijk(2, :), 'Voxel
 metaData = add_metadata(metaData, 'voxel_k', 'Voxel k index', vijk(3, :), 'VoxelData');
 
 % Add ROIs
+roiflag = [];
 for i = 1:length(roi)
     roiflag(i, :) = get_roiflag(roi(i).xyz, vxyz);
 
@@ -160,7 +161,12 @@ for i = 1:length(roi)
 end
 
 % Remove voxels out of ROIs
-removevox = true;
+if isempty(roiflag)
+    removevox = false;
+else
+    removevox = true;
+end
+
 if removevox
     fprintf('Removing voxels out of ROIs\n');
     isroi = logical(sum(roiflag, 1));
