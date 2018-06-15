@@ -225,8 +225,8 @@ if ~exist('prefix', 'var')
     prefix = 'r';
 end
 
-rapat = sprintf('^%sa.+_.*_bold\.nii', prefix);
-rpat = sprintf('^%s[^m]+_.*_bold\.nii', prefix);
+rapat = ['^', prefix, 'a.+_.*_bold\.nii'];
+rpat =  ['^', prefix, '[^m]+_.*_bold\.nii'];
 
 % Analyze preprocessing type
 ptype = 0;
