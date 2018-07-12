@@ -15,17 +15,23 @@ function builder = databuilder(entry, model)
 
 if ~exist('model', 'var')
     % Default data model (Nifti-based dataset)
-    model.epidir  = 'epi';
-    model.taskdir = 'task';
-
-    model.epiprefix  = 'r';
+    model = struct();
 end
 
-if ~isfield(model, 'epidir'),      model.epidir      = 'epi';  end
-if ~isfield(model, 'taskdir'),     model.taskdir     = 'task'; end
-if ~isfield(model, 'epiprefix'),   model.epiprefix   = 'r';    end
-if ~isfield(model, 'epifilefmt'),  model.epifilefmt  = '';     end
-if ~isfield(model, 'taskfilefmt'), model.taskfilefmt = '';     end
+if ~isfield(model, 'epi_dir'),         model.epi_dir         = 'epi';   end
+if ~isfield(model, 'epi_prefix'),      model.epi_prefix      = 'r';     end
+if ~isfield(model, 'epi_file_fmt'),    model.epi_file_fmt    = '';      end
+if ~isfield(model, 'event_dir'),       model.event_dir       = 'event'; end
+if ~isfield(model, 'event_file_type'), model.event_file_type = 'tsv';   end
+if ~isfield(model, 'event_file_fmt'),  model.event_file_fmt  = '';      end
+
+% Obsoleted model options
+if isfield(model, 'epidir'),       model.epi_dir         = model.epidir;       end
+if isfield(model, 'taskdir'),      model.event_dir       = model.taskdir;      end
+if isfield(model, 'taskfiletype'), model.event_file_type = model.taskfiletype; end
+if isfield(model, 'epiprefix'),    model.epi_prefix      = model.epi_prefix;   end
+if isfield(model, 'epifilefmt'),   model.epi_file_fmt    = model.epifilefmt;   end
+if isfield(model, 'taskfilefmt'),  model.event_file_fmt  = model.taskfilefmt;  end
 
 %% Parse data directories
 if ~iscell(entry)
@@ -42,16 +48,16 @@ for i = 1:length(entry)
     end
 
     % Get EPI and task files
-    epifilesAll = getfileindir(fullfile(entry{i}, model.epidir), 'nii');
-    taskfilesAll = getfileindir(fullfile(entry{i}, model.taskdir), 'mat');
+    epifilesAll = getfileindir(fullfile(entry{i}, model.epi_dir), 'nii');
+    taskfilesAll = getfileindir(fullfile(entry{i}, model.event_dir), model.event_file_type);
 
-    if isempty(model.epifilefmt)
-        epifilefmt = get_epifilefmt(epifilesAll, model.epiprefix);
+    if isempty(model.epi_file_fmt)
+        epifilefmt = get_epifilefmt(epifilesAll, model.epi_prefix);
     else
-        epifilefmt = model.epifilefmt;
+        epifilefmt = model.epi_file_fmt;
     end
 
-    taskfilefmt = model.taskfilefmt;
+    taskfilefmt = model.event_file_fmt;
 
     epifiles = get_filelist(epifilesAll, epifilefmt);
     taskfiles = get_filelist(taskfilesAll, taskfilefmt);
@@ -60,7 +66,7 @@ for i = 1:length(entry)
     for j = 1:length(epifiles)
         fprintf('%s\n', epifiles{j});
     end
-    fprintf('Detected task files (%d files):\n', length(taskfiles));
+    fprintf('Detected task event files (%d files):\n', length(taskfiles));
     for j = 1:length(taskfiles)
         fprintf('%s\n', taskfiles{j});
     end
@@ -69,7 +75,7 @@ for i = 1:length(entry)
     sesTask = split_sessions(taskfiles);
 
     % Get SPM realign parameter files
-    spmrpfiles = get_spmrpfiles(fullfile(entry{i}, model.epidir));
+    spmrpfiles = get_spmrpfiles(fullfile(entry{i}, model.epi_dir));
 
     % List files in each session
     for s = 1:length(sesEpi)
@@ -89,10 +95,10 @@ for i = 1:length(entry)
             builder.ses(sesnum).run(r).id = sprintf('run-%02d', r);
 
             for n = 1:length(sesEpi{s}{r})
-                builder.ses(sesnum).run(r).epifile{n, 1} = fullfile(entry{i}, model.epidir, sesEpi{s}{r}{n});
+                builder.ses(sesnum).run(r).epifile{n, 1} = fullfile(entry{i}, model.epi_dir, sesEpi{s}{r}{n});
             end
             for n = 1:length(sesTask{s}{r})
-                builder.ses(sesnum).run(r).taskfile{n, 1} = fullfile(entry{i}, model.taskdir, sesTask{s}{r}{n});
+                builder.ses(sesnum).run(r).taskfile{n, 1} = fullfile(entry{i}, model.event_dir, sesTask{s}{r}{n});
             end
 
             % Add SPM realign parameters as supplement data
@@ -112,11 +118,35 @@ for i = 1:length(entry)
     end
 end
 
-%% Add design (not implemented yet)
+%% Load experimental design info from BIDS event files
+
 for i = 1:length(builder.ses)
 for j = 1:length(builder.ses(i).run)
-    %builder.ses(i).run(j).design = taskhandler(builder.ses(i).run(j).taskfile);
     builder.ses(i).run(j).design = [];
+    if isequal(model.event_dir, 'event') && isequal(model.event_file_type, 'tsv')
+        event_file = builder.ses(i).run(j).taskfile{1};
+        events = load_task_events(event_file);
+
+        tr = get_tr_epi(builder.ses(i).run(j).epifile{1});
+
+        onset    = events(:).onset / tr;
+        duration = events(:).duration / tr;
+
+        labels_names = {};
+        labels_matrix = [];
+
+        fields = fieldnames(events);
+        for k = 1:length(fields)
+            if isequal(fields{k}, 'onset'), continue; end
+            if isequal(fields{k}, 'duration'), continue; end
+
+            labels_names{end + 1} = fields{k};
+            labels_matrix = [labels_matrix, events(:).(fields{k})];
+        end
+
+        builder.ses(i).run(j).design = [onset, duration, labels_matrix];
+        builder.ses(i).run(j).design_cols = labels_names;
+    end
 end
 end
 
@@ -247,3 +277,49 @@ switch ptype
   otherwise
     error('Unrecognizable file name pattern');
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function events = load_task_events(file_name)
+% Load a task event file
+%
+
+events = tdfread(file_name);
+
+cols = fieldnames(events);
+for i = 1:length(cols)
+    if isnumeric(events(:).(cols{i}))
+        continue;
+    end
+
+    a = events(:).(cols{i});
+    b = [];
+
+    for n = 1:size(a, 1)
+        if strfind(a(n, :), 'n/a')
+            b = [b; NaN];
+        else
+            b = [b; str2num(a(n, :))];
+        end
+    end
+
+    events(:).(cols{i}) = b;
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function tr = get_tr_epi(file_name)
+% Returns TR
+%
+
+[d, b, e] = fileparts(regexprep(basename(file_name), '^[aruw]+', ''));
+epi_param_fname = [b, '.json'];
+epi_param_fpath = fullfile(dirname(file_name), epi_param_fname);
+
+json = fileread(epi_param_fpath);
+
+[ind_start, ind_end] = regexp(json, '"RepetitionTime" *: *[0-9]+\.[0-9]*,');
+k = strsplit(json(ind_start:ind_end), ':');
+
+tr = str2num(k{2}) / 1000; % ms --> s

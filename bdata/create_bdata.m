@@ -133,6 +133,20 @@ if ~nodesign
     [dataSet, metaData] = add_dataset(dataSet, metaData, blocks,   'Block',     '1 = block number');
     [dataSet, metaData] = add_dataset(dataSet, metaData, labels,   'Label',     '1 = labels');
 
+    if isfield(builder.ses(1).run(1), 'design_cols')
+        label_cols = builder.ses(1).run(1).design_cols;
+
+        for i = 1:length(label_cols)
+            colname = label_cols{i};
+            coldesc = sprintf('1 = %s', colname);
+
+            cols = NaN(1, length(label_cols));
+            cols(i) = 1;
+
+            metaData = add_metadata(metaData, colname, coldesc, cols, 'Label');
+        end
+    end
+
     clear blocks labels;
 end
 
