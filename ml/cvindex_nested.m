@@ -1,8 +1,5 @@
 function cvindex = cvindex_nested(group, nfoldOuter, nfoldInner)
-% cvindex_groupwise    Return indeces for group-wise cross-validation
-%
-% This function was obsoleted and kept for backward compatibility.
-% Please use `make_cvindex` instead.
+% cvindex_nested    Return indeces for nested cross-validation
 %
 % This file is a part of BrainDecoderToolbox2
 %
