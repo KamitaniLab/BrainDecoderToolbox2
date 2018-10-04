@@ -28,6 +28,7 @@ if ~isfield(model, 'epi_file_fmt'),    model.epi_file_fmt    = '';      end
 if ~isfield(model, 'event_dir'),       model.event_dir       = 'event'; end
 if ~isfield(model, 'event_file_type'), model.event_file_type = 'tsv';   end
 if ~isfield(model, 'event_file_fmt'),  model.event_file_fmt  = '';      end
+if ~isfield(model, 'epi_param_tr'),    model.epi_param_tr    = NaN;     end
 
 % Obsoleted model options
 if isfield(model, 'epidir'),       model.epi_dir         = model.epidir;       end
@@ -131,7 +132,11 @@ for j = 1:length(builder.ses(i).run)
         event_file = builder.ses(i).run(j).taskfile{1};
         events = load_task_events(event_file);
 
-        tr = get_tr_epi(builder.ses(i).run(j).epifile{1});
+        if isnan(model.epi_param_tr)
+            tr = get_tr_epi(builder.ses(i).run(j).epifile{1});
+        else
+            tr = model.epi_param_tr;
+        end
 
         onset    = events(:).onset / tr;
         duration = events(:).duration / tr;
