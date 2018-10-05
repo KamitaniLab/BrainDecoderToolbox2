@@ -20,6 +20,18 @@ labels   = [];
 
 suppdat = [];
 
+%% Remove empty sessions
+remove_sess = [];
+for ises = 1:length(builder.ses)
+    if length(builder.ses(ises).run) == 0
+        fprintf('\nSession %s is empty and discarded from the output data.\n\n', builder.ses(ises).id);
+        remove_sess(end + 1) = ises;
+        continue;
+    end
+end
+
+builder.ses(remove_sess) = [];
+
 %% Load EPIs -----------------------------------------------------------
 sesnum   = 1;
 runnum   = 1;
