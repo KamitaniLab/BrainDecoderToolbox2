@@ -28,6 +28,7 @@ if ~isfield(model, 'epi_file_fmt'),    model.epi_file_fmt    = '';      end
 if ~isfield(model, 'event_dir'),       model.event_dir       = 'event'; end
 if ~isfield(model, 'event_file_type'), model.event_file_type = 'tsv';   end
 if ~isfield(model, 'event_file_fmt'),  model.event_file_fmt  = '';      end
+if ~isfield(model, 'event_ignore_column'),  model.event_ignore_column = {};      end
 if ~isfield(model, 'epi_param_tr'),    model.epi_param_tr    = NaN;     end
 
 % Obsoleted model options
@@ -130,7 +131,7 @@ for j = 1:length(builder.ses(i).run)
     builder.ses(i).run(j).design = [];
     if isequal(model.event_dir, 'event') && isequal(model.event_file_type, 'tsv')
         event_file = builder.ses(i).run(j).taskfile{1};
-        events = load_task_events(event_file);
+        events = load_task_events(event_file, model.event_ignore_column);
 
         if isnan(model.epi_param_tr)
             tr = get_tr_epi(builder.ses(i).run(j).epifile{1});
@@ -148,6 +149,7 @@ for j = 1:length(builder.ses(i).run)
         for k = 1:length(fields)
             if isequal(fields{k}, 'onset'), continue; end
             if isequal(fields{k}, 'duration'), continue; end
+            if ismember(fields{k}, model.event_ignore_column), continue; end
 
             labels_names{end + 1} = fields{k};
             labels_matrix = [labels_matrix, events(:).(fields{k})];
@@ -289,7 +291,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function events = load_task_events(file_name)
+function events = load_task_events(file_name, ignore_cols)
 % Load a task event file
 %
 
@@ -297,7 +299,12 @@ events = tdfread(file_name);
 
 cols = fieldnames(events);
 for i = 1:length(cols)
+
     if isnumeric(events(:).(cols{i}))
+        continue;
+    end
+
+    if ismember(cols{i}, ignore_cols)
         continue;
     end
 
