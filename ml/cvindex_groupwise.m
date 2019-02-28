@@ -13,7 +13,7 @@ function cvindex = cvindex_groupwise(group, nfold)
 % -------
 % cvindex
 %     Structure vector containing indeces for training and test
-% 
+%
 
 if ~isnumeric(group)
     error('make_cvindex:InputIsNotNumeric', ...
@@ -24,13 +24,17 @@ if ~exist('nfold', 'var'), nfold = length(unique(group)); end
 
 group  = uint32(group); % For speed up esp. with large group
 groupList   = unique(group);
-groupLength = length(groupList) ./ nfold; % Num of groups in one fold
+groupLength = floor(length(groupList) ./ nfold); % Num of groups in one fold
 
 for n = 1:nfold
     cvindex(n).testIndex = false(size(group));
 
-    testGroup = groupList(1:groupLength);
-    groupList(1:groupLength) = [];
+    if n == nfold && groupLength < length(groupList)
+        testGroup = groupList;
+    else
+        testGroup = groupList(1:groupLength);
+        groupList(1:groupLength) = [];
+    end
 
     for t = 1:length(testGroup)
         cvindex(n).testIndex = cvindex(n).testIndex | group == testGroup(t);
