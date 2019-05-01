@@ -21,13 +21,14 @@ function save_data(fileName, dataSet, metaData, varargin)
 %
 % The saved file contains:
 %
-% - dataset       : Dataset matrix
-% - metadata      : Metadata structure
-% - createScript  : Path to the script file which called this function
-% - callStack     : Call stack
-% - callStackCode : Code of routines in the call stack
-% - createDateRaw : Timestamp
-% - createDate    : Timestamp (human readable)
+% - dataset            : Dataset matrix
+% - metadata           : Metadata structure
+% - header             : Header structure
+%     - ctime          : Created timestamp
+%     - ctime_serial   : Created timestamp (serial value)
+%     - source_file    : Path to the script file which called this function
+%     - callstack      : Call stack
+%     - callstack_code : Code of routines in the call stack
 %
 
 opt = bdt_getoption(varargin, ...
@@ -77,26 +78,27 @@ end
 createDateRaw = now;
 createDate = datestr(createDateRaw, 'yyyy-mm-dd HH:MM:SS');
 
+% Store source information in the header
+header = struct();
+header.ctime = createDate;
+header.ctime_serial = createDateRaw;
+header.source_file = createScript;
+header.callstack = callStack;
+header.callstack_code = callStackCode;
+
 % Save data
 switch fileType
   case 'mat'
     dataset = dataSet;
     metadata = metaData;
-    save(fileName, ...
-         'dataset', 'metadata', ...
-         'createScript', 'callStack', 'callStackCode', 'createDateRaw', 'createDate', ...
-         save_ver);
+
+    save(fileName, 'dataset', 'metadata', 'header', save_ver);
   case 'hdf5'
     dat.dataSet = dataSet;
     dat.metaData = metaData;
-    dat.createScript = createScript;
-    dat.callStack = callStack;
-    dat.callStackCode = callStackCode;
-    dat.createDateRaw = createDateRaw;
-    dat.createDate = createDate;
+    dat.header = header;
 
     writehdf5fromstruct(fileName, dat);
-
   otherwise
     error('save_data:UnkownFileType', ...
           ['Unknown file type: ', fileType]);
