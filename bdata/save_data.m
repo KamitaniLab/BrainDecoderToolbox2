@@ -21,8 +21,8 @@ function save_data(fileName, dataSet, metaData, varargin)
 %
 % The saved file contains:
 %
-% - dataSet       : Dataset matrix
-% - metaData      : Metadata structure
+% - dataset       : Dataset matrix
+% - metadata      : Metadata structure
 % - createScript  : Path to the script file which called this function
 % - callStack     : Call stack
 % - callStackCode : Code of routines in the call stack
@@ -80,8 +80,10 @@ createDate = datestr(createDateRaw, 'yyyy-mm-dd HH:MM:SS');
 % Save data
 switch fileType
   case 'mat'
+    dataset = dataSet;
+    metadata = metaData;
     save(fileName, ...
-         'dataSet', 'metaData', ...
+         'dataset', 'metadata', ...
          'createScript', 'callStack', 'callStackCode', 'createDateRaw', 'createDate', ...
          save_ver);
   case 'hdf5'
