@@ -18,25 +18,23 @@ end
 
 switch fileType
   case 'mat'
-    load(fileName);
+    d = load(fileName);
   case 'hdf5'
     d = readhdf5asstruct(fileName);
-
-    if     isfield(d, 'dataSet'), dataSet = d.dataSet;
-    elseif isfield(d, 'dataset'), dataSet = d.dataset;
-    else,  error('load_data:noDataSet', 'dataset not found');
-    end
-
-    if     isfield(d, 'metaData'), metaData = d.metaData;
-    elseif isfield(d, 'metadata'), metaData = d.metadata;
-    else,   error('load_data:noMetadata', 'metadata not found');
-    end
-
   otherwise
     error('load_data:UnkownFileType', ...
           [ 'Unknown file type: ' fileType ]);
 end
 
+if     isfield(d, 'dataSet'), dataSet = d.dataSet;
+elseif isfield(d, 'dataset'), dataSet = d.dataset;
+else,  error('load_data:noDataSet', 'dataset not found');
+end
+
+if     isfield(d, 'metaData'), metaData = d.metaData;
+elseif isfield(d, 'metadata'), metaData = d.metadata;
+else,   error('load_data:noMetadata', 'metadata not found');
+end
 
 if ~exist('dataSet', 'var')
     error('load_data:dataSetNotFound', ...
