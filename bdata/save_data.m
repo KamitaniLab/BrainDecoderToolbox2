@@ -94,8 +94,8 @@ switch fileType
 
     save(fileName, 'dataset', 'metadata', 'header', save_ver);
   case 'hdf5'
-    dat.dataSet = dataSet;
-    dat.metaData = metaData;
+    dat.dataset = dataSet;
+    dat.metadata = metaData;
     dat.header = header;
 
     writehdf5fromstruct(fileName, dat);
