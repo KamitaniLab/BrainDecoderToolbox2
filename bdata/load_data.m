@@ -20,7 +20,9 @@ switch fileType
   case 'mat'
     d = load(fileName);
   case 'hdf5'
-    d = readhdf5asstruct(fileName);
+    [ds, md] = read_bdata_hdf5(fileName);
+    d.dataset = ds;
+    d.metadata = md;
   otherwise
     error('load_data:UnkownFileType', ...
           [ 'Unknown file type: ' fileType ]);
